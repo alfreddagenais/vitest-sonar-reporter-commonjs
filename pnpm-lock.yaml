@@ -8,6 +8,7 @@ specifiers:
   eslint-config-prettier: ^8.6.0
   eslint-plugin-import: ^2.27.5
   eslint-plugin-prettier: ^4.2.1
+  minimatch: ^7.0.1
   prettier: ^2.8.4
   publint: ^0.1.9
   typescript: ^4.9.5
@@ -22,6 +23,7 @@ devDependencies:
   eslint-config-prettier: 8.6.0_eslint@8.34.0
   eslint-plugin-import: 2.27.5_dbs2zxbe2aiqaiiio3svelvkai
   eslint-plugin-prettier: 4.2.1_u5wnrdwibbfomslmnramz52buy
+  minimatch: 7.0.1
   prettier: 2.8.4
   publint: 0.1.9
   typescript: 4.9.5
@@ -1503,6 +1505,13 @@ packages:
 
   /minimatch/5.1.4:
     resolution: {integrity: sha512-U0iNYXt9wALljzfnGkhFSy5sAC6/SCR3JrHrlsdJz4kF8MvhTRQNiC59iUi1iqsitV7abrNAJWElVL9pdnoUgw==}
+    engines: {node: '>=10'}
+    dependencies:
+      brace-expansion: 2.0.1
+    dev: true
+
+  /minimatch/7.0.1:
+    resolution: {integrity: sha512-C4CrOG1kAnaIxQPTAoiAmZCR2up1yjDdseGpr8UCUw5UqBUao5E1q2bOv0cAX0+y8MUxcyrvkTsoj5DvGRnvdQ==}
     engines: {node: '>=10'}
     dependencies:
       brace-expansion: 2.0.1

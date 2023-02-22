@@ -1,6 +1,8 @@
-import type { File, Task, Test } from 'vitest';
+import { readFileSync } from 'fs';
+import { resolve } from 'path';
 
 import { escapeXML } from './xml-escape.js';
+import { parseTests } from './file-explore.js';
 
 const NEWLINE = '\n';
 
@@ -24,20 +26,24 @@ const NEWLINE = '\n';
  * </testExecutions>
  * ```
  */
-export function generateXml(files?: File[]) {
+export function generateXml(basePath: string, files?: Array<string>) {
     return join(
         '<testExecutions version="1">',
         NEWLINE,
-        files?.map(generateFileElement).join(NEWLINE),
+        files
+            ?.map((file: string) => generateFileElement(basePath, file))
+            .join(NEWLINE),
         NEWLINE,
         '</testExecutions>'
     );
 }
 
-function generateFileElement(file: File) {
+function generateFileElement(basePath: string, file: string) {
+    const filePath = file.replace(basePath, '').replace(/^\/|\/$/g, ''); // remove first and last slash
+
     return join(
         indent(1),
-        `<file path="${escapeXML(file.name)}">`,
+        `<file path="${escapeXML(filePath)}">`,
         NEWLINE,
         generateTestCases(file),
         NEWLINE,
@@ -46,94 +52,45 @@ function generateFileElement(file: File) {
     );
 }
 
-function generateTestCases(file: File) {
-    const tests = file.tasks.map(getAllTests).flat();
-
-    return tests.map(generateTestCaseElement).join(NEWLINE);
-}
-
-function generateTestCaseElement(test: Test) {
-    const start = join(
-        indent(2),
-        '<testCase ',
-        `name="${escapeXML(generateTestCaseName(test))}"`,
-        getDurationAttribute(test)
-    );
-
-    if (test.result?.state === 'fail') {
-        const element =
-            test.result.error?.name === 'AssertionError' ? 'failure' : 'error';
-
-        return join(
-            start,
-            '>',
-            NEWLINE,
-            indent(3),
-            `<${element} message="${escapeXML(test.result.error?.message)}">`,
-            NEWLINE,
-            indent(4),
-            `<![CDATA[${escapeXML(test.result.error?.stack)}]]>`,
-            NEWLINE,
-            indent(3),
-            `</${element}>`,
-            NEWLINE,
-            indent(2),
-            '</testCase>'
-        );
+function generateTestCases(file: string) {
+    let data;
+    try {
+        data = readFileSync(resolve(file), 'utf8');
+    } catch (err) {
+        // console.error(`Erreur lors de la lecture du fichier : ${err}`);
+    }
+    if (!data) {
+        return '';
     }
 
-    if (
-        test.mode === 'skip' ||
-        test.mode === 'todo' ||
-        // These might work in future?
-        test.result?.state === 'skip' ||
-        test.result?.state === 'todo'
-    ) {
-        return join(
-            start,
-            '>',
-            NEWLINE,
-            indent(3),
-            `<skipped message="${escapeXML(test.name)}" />`,
-            NEWLINE,
-            indent(2),
-            '</testCase>'
-        );
-    }
+    const tests = parseTests(file, data);
 
-    return join(start, ' />');
-}
+    const testCase: Array<string> = [];
+    tests.forEach((test) => {
+        const children = test.children;
+        if (!children || !children.length) {
+            testCase.push(
+                join(
+                    indent(2),
+                    `<testCase name="${escapeXML(test.name)}" duration="0" />`
+                )
+            );
+            return;
+        }
 
-function getAllTests(task: Task): Test[] {
-    const tests: Test[] = [];
+        children.forEach((child) => {
+            testCase.push(
+                join(
+                    indent(2),
+                    `<testCase name="${escapeXML(
+                        test.name + ' - ' + child.name
+                    )}" duration="0" />`
+                )
+            );
+        });
+    });
 
-    if (task.type === 'custom') {
-        return tests;
-    }
-
-    if (task.type === 'test') {
-        return [...tests, task];
-    }
-
-    return [...tests, ...task.tasks.map(getAllTests).flat()];
-}
-
-function getDurationAttribute(test: Test): string {
-    const duration = test.result?.duration;
-
-    if (typeof duration !== 'number') {
-        return ` duration="0"`;
-    }
-
-    return ` duration="${Math.round(duration)}"`;
-}
-
-function generateTestCaseName(task: Task): string {
-    if (task.suite && task.suite.name) {
-        return `${generateTestCaseName(task.suite)} - ${task.name}`;
-    }
-
-    return task.name;
+    return testCase.join(NEWLINE);
 }
 
 function join(...lines: (string | undefined)[]) {
