@@ -4,31 +4,96 @@ import type { Reporter, File, Vitest } from 'vitest';
 
 import { generateXml } from './xml.js';
 
+// const _summarizer: ReturnType<typeof Symbol> = Symbol('ReportBase.#summarizer');
+// const _summarizer: unique symbol = Symbol('ReportBase.#summarizer');
+
 /**
  * Reporter used by `vitest`
  */
 export default class SonarReporter implements Reporter {
-    ctx!: Vitest;
-    outputFile!: string;
+    opts: any;
+    cw: any;
+    xml: any;
+    file!: string;
+    _summarizer: symbol;
 
-    onInit(ctx: Vitest) {
-        this.ctx = ctx;
+    constructor(opts: { summarizer: symbol; file: string }) {
+        this._summarizer = Symbol('ReportBase.#summarizer');
+        // this[this._summarizer] = opts.summarizer;
 
-        if (!this.ctx.config.outputFile) {
-            throw new Error(
-                'SonarReporter requires config.outputFile to be defined in vite config'
-            );
-        }
+        this.opts = opts;
+        this.file = opts.file || 'sonar-report.xml';
 
-        this.outputFile = resolveOutputfile(this.ctx.config);
-
-        if (existsSync(this.outputFile)) {
-            rmSync(this.outputFile);
+        if (existsSync(this.file)) {
+            rmSync(this.file);
         }
     }
 
+    execute(context: any) {
+        // context.getTree(this[_summarizer]).visit(this, context);
+        context.getTree(this._summarizer).visit(this, context);
+    }
+
+    onStart(root: any, context: any) {
+        this.cw = context.writer.writeFile(this.file);
+        this.xml = context.getXMLWriter(this.cw);
+        // this.writeRootStats(root);
+    }
+
+    writeRootStats(node: any) {
+        // const metrics = node.getCoverageSummary();
+        this.cw.println('<?xml version="1.0" ?>');
+        /*
+        this.cw.println(
+            '<!DOCTYPE coverage SYSTEM "http://cobertura.sourceforge.net/xml/coverage-04.dtd">'
+        );
+        this.xml.openTag('coverage', {
+            'lines-valid': metrics.lines.total,
+            'lines-covered': metrics.lines.covered,
+            'line-rate': metrics.lines.pct / 100.0,
+            'branches-valid': metrics.branches.total,
+            'branches-covered': metrics.branches.covered,
+            'branch-rate': metrics.branches.pct / 100.0,
+            timestamp: this.timestamp,
+            complexity: '0',
+            version: '0.1',
+        });
+        this.xml.openTag('sources');
+        this.xml.inlineTag('source', null, this.projectRoot);
+        this.xml.closeTag('sources');
+        this.xml.openTag('packages');
+        */
+    }
+
+    writeSummary(filePath: string, sc: any) {
+        /*
+        const cw = this.contentWriter;
+        if (this.first) {
+            this.first = false;
+        } else {
+            cw.write(',');
+        }
+        cw.write(JSON.stringify(filePath));
+        cw.write(': ');
+        cw.write(JSON.stringify(sc));
+        cw.println('');
+        */
+    }
+
+    onDetail(node) {
+        this.writeSummary(
+            node.getFileCoverage().path,
+            node.getCoverageSummary()
+        );
+    }
+
+    onEnd() {
+        this.xml.closeAll();
+        this.cw.close();
+    }
+
     onFinished(files?: File[]) {
-        const reportFile = resolve(this.ctx.config.root, this.outputFile);
+        const reportFile = resolve(this.opts.config.root, this.file);
 
         const outputDirectory = dirname(reportFile);
         if (!existsSync(outputDirectory)) {
@@ -38,36 +103,8 @@ export default class SonarReporter implements Reporter {
         const sorted = files?.sort(sortByFilename);
 
         writeFileSync(reportFile, generateXml(sorted), 'utf-8');
-        this.ctx.logger.log(`SonarQube report written to ${reportFile}`);
+        this.opts.logger.log(`SonarQube report written to ${reportFile}`);
     }
-}
-
-function resolveOutputfile(config: Vitest['config']) {
-    if (typeof config.outputFile === 'string') {
-        return config.outputFile;
-    }
-
-    if (config.outputFile['vitest-sonar-reporter']) {
-        return config.outputFile['vitest-sonar-reporter'];
-    }
-
-    throw new Error(
-        [
-            'Unable to resolve outputFile for vitest-sonar-reporter.',
-            'Define outputFile as string or add entry for it:',
-            JSON.stringify(
-                {
-                    test: {
-                        outputFile: {
-                            'vitest-sonar-reporter': 'sonar-report.xml',
-                        },
-                    },
-                },
-                null,
-                2
-            ),
-        ].join('\n')
-    );
 }
 
 function sortByFilename(a: File, b: File): -1 | 0 | 1 {
