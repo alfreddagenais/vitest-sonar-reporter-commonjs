@@ -39,11 +39,11 @@ export function generateXml(basePath: string, files?: Array<string>) {
 }
 
 function generateFileElement(basePath: string, file: string) {
-    const filePath = file.replace(basePath, '').replace(/^\/|\/$/g, ''); // remove first and last slash
+    // const filePath = file.replace(basePath, '').replace(/^\/|\/$/g, ''); // remove first and last slash
 
     return join(
         indent(1),
-        `<file path="${escapeXML(filePath)}">`,
+        `<file path="${escapeXML(file)}">`,
         NEWLINE,
         generateTestCases(file),
         NEWLINE,
