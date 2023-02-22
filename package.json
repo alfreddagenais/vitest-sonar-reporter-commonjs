@@ -1,6 +1,6 @@
 {
     "name": "vitest-sonar-reporter-commonjs",
-    "version": "0.0.3",
+    "version": "0.0.4",
     "description": "SonarQube reporter for Vitest - With commonjs",
     "author": "Alfred Dagenais <jesuis@alfreddagenais.com>",
     "license": "MIT",
