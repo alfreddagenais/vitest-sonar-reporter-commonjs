@@ -1,6 +1,6 @@
 name: 'Setup-node and cache'
 description: 'Base setup for each action'
-author: 'AriPerkkio'
+author: 'Alfred Dagenais'
 inputs:
     node-version:
         required: false

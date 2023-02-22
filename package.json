@@ -1,10 +1,9 @@
 {
-    "name": "vitest-sonar-reporter",
-    "version": "0.3.4",
-    "description": "SonarQube reporter for Vitest",
-    "author": "Ari Perkkiö <ari.perkkio@gmail.com>",
+    "name": "vitest-sonar-reporter-commonjs",
+    "version": "0.0.1",
+    "description": "SonarQube reporter for Vitest - With commonjs",
+    "author": "Alfred Dagenais <jesuis@alfreddagenais.com>",
     "license": "MIT",
-    "type": "module",
     "exports": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "files": [
@@ -21,6 +20,7 @@
         "changelog": "npx conventional-changelog-cli -i CHANGELOG.md -p conventionalcommits -s -r 0",
         "prebuild": "rm -rf ./dist",
         "build": "tsc --project tsconfig.prod.json",
+        "build:commonjs": "pnpm build --module commonjs",
         "start": "vitest --update",
         "lint": "eslint . --max-warnings 0 --ext .ts && publint",
         "test": "vitest",
@@ -28,8 +28,8 @@
     },
     "devDependencies": {
         "@types/node": "^18.14.0",
-        "@typescript-eslint/eslint-plugin": "^5.52.0",
-        "@typescript-eslint/parser": "^5.52.0",
+        "@typescript-eslint/eslint-plugin": "^5.53.0",
+        "@typescript-eslint/parser": "^5.53.0",
         "eslint": "^8.34.0",
         "eslint-config-prettier": "^8.6.0",
         "eslint-plugin-import": "^2.27.5",
@@ -37,7 +37,7 @@
         "prettier": "^2.8.4",
         "publint": "^0.1.9",
         "typescript": "^4.9.5",
-        "vite": "^4.1.2",
+        "vite": "^4.1.4",
         "vitest": "^0.28.5"
     },
     "peerDependencies": {
@@ -46,6 +46,7 @@
     "keywords": [
         "vitest",
         "vitest-reporter",
+        "vitest-reporter-commonjs",
         "sonar",
         "sonarqube"
     ],

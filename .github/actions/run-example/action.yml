@@ -1,6 +1,6 @@
 name: 'Run Example'
 description: 'Run example projects'
-author: 'AriPerkkio'
+author: 'Alfred Dagenais'
 inputs:
     example-name:
         required: true
@@ -23,7 +23,7 @@ runs:
           shell: bash
           run: |
               pnpm install
-              pnpm build
+              pnpm build:commonjs
 
         - name: Run ${{ inputs.example-name }}
           working-directory: ./examples/${{ inputs.example-name }}

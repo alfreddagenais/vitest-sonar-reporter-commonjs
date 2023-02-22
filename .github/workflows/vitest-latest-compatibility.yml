@@ -28,7 +28,7 @@ jobs:
               run: pnpm install --save-dev vitest@latest
 
             - name: Build
-              run: pnpm build
+              run: pnpm build:commonjs
 
             - name: Lint
               run: pnpm lint
